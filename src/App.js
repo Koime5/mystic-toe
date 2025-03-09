@@ -5,6 +5,7 @@ import VsComputer from './pages/vs-computer';
 import RandomOpponent from './pages/random-opponents';
 import CreateRoom from './pages/create-room';
 import JoinRoom from './pages/join-room';
+import NotFound from './pages/not-found';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path='/random-opponent' element={<RandomOpponent/>} />
         <Route path='/create-room' element={<CreateRoom/>} />
         <Route path='/join-room' element={<JoinRoom/>} />
+        <Route path='*' element={<NotFound/>} />
       </Routes>
   );
 }
