@@ -1,9 +1,12 @@
 import "../styles/bla.css";
 import "../styles/board.css";
+import GameBoard from "../components/gameboard";
 
 const VsComputer = () => {
   return (
-    <div className="bla-container"><p>This is play with computer and coming soon...</p></div>
+    <div className="bla-container">
+      <GameBoard/>
+    </div>
   );
 }
 

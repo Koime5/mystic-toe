@@ -1,0 +1,43 @@
+.square {
+  padding: 8px;
+  height: 100%;
+  width: 33%;
+  font-size: 2em;
+  font-family: 'Mystery Quest', sans-serif;
+  background: transparent;
+  border: none;
+}
+
+.board {
+  height: 300px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  background: url('../img/gameBoard.min.svg') no-repeat center;
+  background-size: cover;
+  overflow: visible;
+}
+
+.board-row {
+  height: 33%;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.board-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+}
+
+.board-container h1 {
+  color: black;
+  text-align: center;
+}
