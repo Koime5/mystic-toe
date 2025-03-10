@@ -18,6 +18,7 @@
   background: url('../img/gameBoard.min.svg') no-repeat center;
   background-size: cover;
   overflow: visible;
+  position: relative;
 }
 
 .board-row {
@@ -40,4 +41,17 @@
 .board-container h1 {
   color: black;
   text-align: center;
+}
+
+.announcement {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  color: black;
 }

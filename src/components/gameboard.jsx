@@ -44,7 +44,7 @@ const GameBoard = ()=> {
     <div className='board-container'>
     <h1>{status}</h1>
     <div className='board'>
-      <div className="board-row">
+      <div className="boardrow">
         <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
         <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
         <Square value={squares[2]} onSquareClick={() => handleClick(2)} />

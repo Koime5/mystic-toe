@@ -9,43 +9,43 @@ const Square = ({ value, onSquareClick, disabled }) => {
   );
 };
 
-const SingleGameBoard = () => {
-  const [squares, setSquares] = useState(Array(9).fill(null));
-  const [userIsX, setUserIsX] = useState(null);
-  const [isUserTurn, setIsUserTurn] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [message, setMessage] = useState('');
+export default function SingleGameBoard() {
+  const [playerX, setPlayerX] = useState(true); //for player getting X(1st turn)
+  const [Announcement,setAnnouncement] =useState(null); //for 3s announcing whose turn is it
+  const [squares, setSquares] = useState(Array(9).fill(null)); //array
+  const [xisNext, setXisNext ] = useState(true);//for x and o 
+  
 
-  useEffect(() => {
-    assignRandomRoles();
-  }, []);
+  //starting to decide turns and announcement
+  useEffect(()=>{
+    handleRestart();
+  },[]);
 
-  const assignRandomRoles = () => {
-    const userGetsX = Math.random() < 0.5;
-    setUserIsX(userGetsX);
-    setIsUserTurn(userGetsX);
-    setMessage(`You are ${userGetsX ? 'X' : 'O'}. ${userGetsX ? 'You start!' : 'Computer starts!'}`);
-    setGameStarted(true);
-
-    if (!userGetsX) {
-      setTimeout(() => {
-        computerMove(Array(9).fill(null));
-      }, 500);
+  useEffect(()=> {
+    if (!playerX) {
+      computerMove(squares);
     }
-  };
+  },[playerX])
 
-  const handleClick = (i) => {
-    if (squares[i] || !isUserTurn || calculateWinner(squares)) return;
+  //turn decision
+  const decideTurn = (Num) => {
+    if (Num < 0.5) {
+      setPlayerX(true);
+    } else {
+      setPlayerX(false);
+    }
+  }
 
-    const nextSquares = [...squares];
-    nextSquares[i] = userIsX ? 'X' : 'O';
-    setSquares(nextSquares);
-    setIsUserTurn(false);
-
-    setTimeout(() => {
-      computerMove(nextSquares);
-    }, 500);
-  };
+  const announce = (Num) => {
+    if (Num < 0.5) {
+      setAnnouncement('Your turn first.');
+    } else {
+      setAnnouncement('Computer\'s turn first.');
+    }
+    setTimeout(()=>{
+      setAnnouncement(null);
+    },3000)
+  }
 
   const computerMove = (board) => {
     if (calculateWinner(board) || board.every((square) => square !== null)) return;
@@ -55,71 +55,95 @@ const SingleGameBoard = () => {
       .filter((idx) => idx !== null);
 
     let randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-    board[randomMove] = userIsX ? 'O' : 'X';
-    setSquares([...board]);
-    setIsUserTurn(true);
+    setTimeout(()=>{
+      board[randomMove] = xisNext ? 'X' : 'O';
+      setSquares([...board]);
+      setXisNext(!xisNext);
+      setPlayerX(!playerX);
+    },1000);
   };
 
-  let winner = calculateWinner(squares);
-  let isDraw = squares.every((square) => square !== null) && !winner;
-  let status;
+  const handleClick = (i) => {
+    if (calculateWinner(squares)|| !playerX || squares[i]) {
+      return;
+    }
+    const nextSquares = squares.slice();
+    nextSquares[i] = xisNext ? 'X' : 'O';
+    setSquares(nextSquares);
+    setXisNext(!xisNext);
+    setPlayerX(!playerX);
+  }
 
+  let winner = calculateWinner(squares);
+  let isdraw = squares.every(square => square !== null ) && !winner;
+  let status;
   if (winner) {
-    status = winner === (userIsX ? 'X' : 'O') ? 'You Win! 🎉' : 'Computer Wins! 🤖';
-  } else if (isDraw) {
-    status = 'It\'s a Draw! 🤝';
+    status = "winner :" + winner;
+  } else if (isdraw) {
+    status = 'Draw';
   } else {
-    status = isUserTurn ? 'Your Turn!' : 'Computer\'s Turn...';
+    status = 'Next player: ' + (xisNext ? 'X' : 'O');
   }
 
   const handleRestart = () => {
     setSquares(Array(9).fill(null));
-    assignRandomRoles();
-  };
+    setXisNext(true);
+    const randomNum = Math.random();
 
-  return (
+    announce(randomNum);
+
+    const mytimer = setTimeout(() => {
+      decideTurn(randomNum);
+    }, 3000); //Since computer move is checking need to add time
+
+    return ()=> clearTimeout(mytimer);
+  }
+
+  return(
+    <>
+    
     <div className='board-container'>
-      {!gameStarted ? (
-        <h2 className="big-message">{message}</h2>
-      ) : (
-        <>
-          <h1>{status}</h1>
-          <div className='board'>
-            {Array(3).fill(null).map((_, row) => (
-              <div className="board-row" key={row}>
-                {Array(3).fill(null).map((_, col) => {
-                  const index = row * 3 + col;
-                  return (
-                    <Square
-                      key={index}
-                      value={squares[index]}
-                      onSquareClick={() => handleClick(index)}
-                      disabled={!isUserTurn || squares[index] !== null}
-                    />
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-          {(winner || isDraw) && <button onClick={handleRestart}>Restart</button>}
-        </>
-      )}
+    { Announcement && <p className="announcement">{Announcement}</p>}
+    <h1>{status}</h1>
+    <div className='board'>
+      <div className="board-row">
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+      </div>
+      <div className="board-row">
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+      </div>
     </div>
+    <button onClick={handleRestart}>Restart</button>
+    </div>
+    </>
   );
-};
+}
 
 function calculateWinner(squares) {
   const lines = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6]
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
   ];
-  for (let [a, b, c] of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
       return squares[a];
     }
   }
   return null;
 }
-
-export default SingleGameBoard;
