@@ -1,11 +1,11 @@
 import "../styles/bla.css";
 import "../styles/board.css";
-import GameBoard from "../components/gameboard";
+import OwnGameBoard from "../components/ownGameBoard";
 
 const VsComputer = () => {
   return (
     <div className="bla-container">
-      <GameBoard/>
+      <OwnGameBoard/>
     </div>
   );
 }
