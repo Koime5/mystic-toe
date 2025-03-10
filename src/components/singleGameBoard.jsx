@@ -14,6 +14,8 @@ export default function SingleGameBoard() {
   const [Announcement,setAnnouncement] =useState(null); //for 3s announcing whose turn is it
   const [squares, setSquares] = useState(Array(9).fill(null)); //array
   const [xisNext, setXisNext ] = useState(true);//for x and o 
+
+  let computerMoving = false;
   
 
   //starting to decide turns and announcement
@@ -48,6 +50,7 @@ export default function SingleGameBoard() {
   }
 
   const computerMove = (board) => {
+    computerMoving = true;
     if (calculateWinner(board) || board.every((square) => square !== null)) return;
 
     let availableMoves = board
@@ -60,11 +63,12 @@ export default function SingleGameBoard() {
       setSquares([...board]);
       setXisNext(!xisNext);
       setPlayerX(!playerX);
-    },1000);
+      computerMoving = false;
+    },500);
   };
 
   const handleClick = (i) => {
-    if (calculateWinner(squares)|| !playerX || squares[i]) {
+    if (calculateWinner(squares)|| !playerX || computerMoving ||Announcement || squares[i]) {
       return;
     }
     const nextSquares = squares.slice();
