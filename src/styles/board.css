@@ -60,3 +60,8 @@
   height: 30px;
   font: 1.5em;
 }
+
+.winning-square {
+  background-color: #90ee9034; 
+  transition: background-color 0.3s ease;
+}

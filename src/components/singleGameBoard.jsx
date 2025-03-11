@@ -1,9 +1,9 @@
 import '../styles/board.css';
 import { useState, useEffect } from 'react';
 
-const Square = ({ value, onSquareClick,isDisabled }) => {
+const Square = ({ value, onSquareClick,isDisabled,isWinning }) => {
   return (
-    <button className="square" onClick={onSquareClick} disabled={isDisabled}>
+    <button className={`square ${isWinning ? 'winning-square' : ''}`}  onClick={onSquareClick} disabled={isDisabled}>
       {value}
     </button>
   );
@@ -17,6 +17,7 @@ export default function SingleGameBoard() {
   const [playerTurn,setPlayerTurn] = useState(false);
   const [computerTurn,setComputerTurn] = useState(false);
   const [computerIsMoving,setComputerIsMoving] = useState(false);
+  const [winningLine, setWinningLine] = useState([]);
   
 
   //starting to decide turns and announcement
@@ -40,7 +41,7 @@ export default function SingleGameBoard() {
       setAnnouncement(null);
     },3000)
 
-    return () => mytime;
+    return () => clearTimeout(mytime);
   }
 
   
@@ -61,11 +62,13 @@ export default function SingleGameBoard() {
 
     let randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
     setTimeout(()=>{
-      const nextSquares = squares.slice();
-      nextSquares[randomMove] = xisNext ? 'X' : 'O';
-      setSquares(nextSquares);
+      setSquares(prev => {
+        const next = [...prev];
+        next[randomMove] = xisNext ? 'X' : 'O';
+        return next;
+      });
       setComputerTurn(false);
-      setXisNext(!xisNext);
+      setXisNext(prev => !prev);
       setPlayerTurn(true);
       setComputerIsMoving(false);
     },500);
@@ -85,33 +88,39 @@ export default function SingleGameBoard() {
 
   const handleRestart = () => {
     setSquares(Array(9).fill(null));
+    setWinningLine([]);
     setXisNext(true);
     setComputerTurn(false)
     setPlayerTurn(false);
     randomize();
   }
 
-  let winner = calculateWinner(squares);
+  const winnerInfo = calculateWinner(squares);
+  const winner = winnerInfo?.winner;
+
+  useEffect(() => {
+    if (winnerInfo) {
+      setWinningLine(winnerInfo.line || []);
+    } else {
+      setWinningLine([]);
+    }
+  }, [winnerInfo]);
+
   let isdraw = squares.every(square => square !== null ) && !winner;
+  // Replace your current status logic with:
   let status;
   if (winner) {
-    if (playerisX && winner==='X') {
-      status = 'You win.';
-    } else if (!playerisX && winner==='O') {
-      status = 'You win.';
+    if ((playerisX && winner === 'X') || (!playerisX && winner === 'O')) {
+      status = 'You win!';
     } else {
-      status = 'Computer wins.';
+      status = 'Computer wins!';
     }
   } else if (isdraw) {
     status = 'Draw';
   } else if (announcement) {
-    status = 'Mystic Toe'
+    status = 'Mystic Toe';
   } else {
-    if (playerTurn) {
-      status = 'Your turn.'
-    } else if (computerTurn) {
-      status = 'Computer\'s turn.'
-    }
+    status = playerTurn ? 'Your turn' : "Computer's turn";
   }
 
   return(
@@ -122,22 +131,22 @@ export default function SingleGameBoard() {
     <h1>{status}</h1>
     <div className='board'>
       <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} isDisabled={!playerTurn || computerIsMoving}/>
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} isDisabled={!playerTurn || computerIsMoving}/>
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(0)}/>
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(1)}/>
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(2)}/>
       </div>
       <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} isDisabled={!playerTurn || computerIsMoving}/>
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} isDisabled={!playerTurn || computerIsMoving}/>
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(3)}/>
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(4)}/>
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(5)}/>
       </div>
       <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} isDisabled={!playerTurn || computerIsMoving}/>
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} isDisabled={!playerTurn || computerIsMoving}/>
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(6)}/>
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(7)}/>
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(8)}/>
       </div>
     </div>
-    <button onClick={handleRestart}>Restart</button>
+    { !announcement && <button onClick={handleRestart}>Restart</button>}
     </div>
     </>
   );
@@ -157,7 +166,10 @@ function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+      return {
+        winner: squares[a],
+        line: lines[i]
+      };
     }
   }
   return null;
