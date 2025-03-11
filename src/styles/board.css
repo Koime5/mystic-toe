@@ -1,13 +1,3 @@
-.square {
-  padding: 8px;
-  height: 100%;
-  width: 33%;
-  font-size: 2em;
-  font-family: 'Mystery Quest', sans-serif;
-  background: transparent;
-  border: none;
-}
-
 .board {
   height: 300px;
   width: 300px;
@@ -59,9 +49,94 @@
 .restart-button {
   height: 30px;
   font: 1.5em;
+  position: relative;
+  z-index: 2;
 }
 
-.winning-square {
-  background-color: #90ee9034; 
-  transition: background-color 0.3s ease;
+/* Square button styles */
+.square {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+}
+
+/* General icon styling */
+.icon {
+  width: 80px;
+  height: 80px;
+  transition: stroke 0.5s ease-in-out, filter 0.5s ease-in-out;
+  border-radius: 10px;
+}
+
+.x-icon path {
+  stroke: #AF71B3; 
+  filter: drop-shadow(0 0 12px rgba(175, 113, 179, 0.9)) 
+          drop-shadow(0 0 20px rgba(175, 113, 179, 0.6));
+  transition: filter 0.5s ease-in-out;
+}
+
+.o-icon circle {
+  stroke: #6362A8; 
+  filter: drop-shadow(0 0 12px rgba(99, 98, 168, 0.9)) 
+          drop-shadow(0 0 20px rgba(99, 98, 168, 0.6));
+  transition: filter 0.5s ease-in-out;
+}
+
+
+.x-icon-win path,
+.o-icon-win circle {
+  stroke: #FFD700;
+  animation: winnerGlow 2s infinite alternate ease-in-out;
+}
+
+@keyframes winnerGlow {
+  0% {
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9)) 
+            drop-shadow(0 0 25px rgba(255, 215, 0, 0.6));
+  }
+  100% {
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1)) 
+            drop-shadow(0 0 40px rgba(255, 215, 0, 0.8));
+  }
+}
+
+
+.icon-muted path,
+.icon-muted circle,
+.icon-draw path,
+.icon-draw circle {
+  stroke: rgba(0, 0, 0, 0.3); 
+  animation: fadeToBlack 1s ease-in-out forwards;
+}
+
+@keyframes fadeToBlack {
+  0% {
+    stroke: rgba(0, 0, 0, 0.3);
+    filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.4));
+  }
+  100% {
+    stroke: rgba(0, 0, 0, 0.6);
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.6));
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.x-icon, .o-icon {
+  animation: fadeIn 0.3s ease-out;
 }

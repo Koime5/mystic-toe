@@ -1,14 +1,6 @@
 import '../styles/board.css';
-import { useState, useEffect, React } from 'react';
-
-const Square = ({ value, onSquareClick, isDisabled, isWinning }) => {
-  return (
-    <button className={`square ${isWinning ? 'winning-square' : ''}`}  onClick={onSquareClick} disabled={isDisabled}>
-      {value}
-    </button>
-  );
-};
-
+import { useState, useEffect, React, useMemo } from 'react';
+import Square from './square';
 
 export default function SingleGameBoard() {
   const [playerisX, setPlayerisX] = useState(null); //for player getting X(1st turn)
@@ -96,9 +88,9 @@ export default function SingleGameBoard() {
     setPlayerTurn(false);
     randomize();
   }
-
-  const winnerInfo = calculateWinner(squares);
+  const winnerInfo = useMemo(() => calculateWinner(squares), [squares]);
   const winner = winnerInfo?.winner;
+  const hasWinner = !!winner;
 
   useEffect(() => {
     if (winnerInfo) {
@@ -137,6 +129,8 @@ export default function SingleGameBoard() {
               onSquareClick={() => handleClick(index)}
               isDisabled={!playerTurn || computerIsMoving}
               isWinning={winningLine.includes(index)}
+              hasWinner={hasWinner}
+              isDraw={isdraw}
             />
           );
         })}
@@ -153,7 +147,7 @@ export default function SingleGameBoard() {
     <div className='board'>
       {renderBoard()}
     </div>
-    { !announcement && <button onClick={handleRestart}>Restart</button>}
+    { !announcement && <button className='restart-button' onClick={handleRestart}>Restart</button>}
     </div>
     </>
   );
