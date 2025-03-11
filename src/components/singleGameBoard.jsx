@@ -47,26 +47,95 @@ export default function SingleGameBoard() {
 
   const computerMove = () => {
     if (calculateWinner(squares) || computerIsMoving || squares.every((square) => square !== null)) return;
-
+  
     setComputerIsMoving(true);
-
-    let availableMoves = squares
-      .map((val, idx) => (val === null ? idx : null))
-      .filter((idx) => idx !== null);
-
-    let randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-    return setTimeout(()=>{
+  
+    let bestMove;
+    let moveCount = squares.filter(sq => sq !== null).length;
+    let availableMoves = squares.map((val, idx) => (val === null ? idx : null)).filter(idx => idx !== null);
+  
+    if (moveCount === 0) {
+      bestMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+    } else if (moveCount === 1 && squares[4] !== null) {
+      const corners = [0, 2, 6, 8];
+      let availableCorners = corners.filter(corner => squares[corner] === null);
+      if (availableCorners.length > 0) {
+        bestMove = availableCorners[Math.floor(Math.random() * availableCorners.length)];
+      } else {
+        bestMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+      }
+    } else {
+      bestMove = getBestMove(squares, xisNext ? 'X' : 'O');
+    }
+  
+    setTimeout(() => {
       setSquares(prev => {
         const next = [...prev];
-        next[randomMove] = xisNext ? 'X' : 'O';
+        next[bestMove] = xisNext ? 'X' : 'O';
         return next;
       });
       setComputerTurn(false);
       setXisNext(prev => !prev);
       setPlayerTurn(true);
       setComputerIsMoving(false);
-    },500);
+    }, 500);
   };
+  
+  function getBestMove(board, aiPlayer) {
+    const humanPlayer = aiPlayer === 'X' ? 'O' : 'X';
+  
+    let bestScore = -Infinity;
+    let move = null;
+  
+    for (let i = 0; i < board.length; i++) {
+      if (board[i] === null) {
+        board[i] = aiPlayer;
+        let score = minimax(board, 0, false, aiPlayer, humanPlayer);
+        board[i] = null;
+  
+        if (score > bestScore) {
+          bestScore = score;
+          move = i;
+        }
+      }
+    }
+  
+    return move;
+  }
+  
+  function minimax(board, depth, isMaximizing, aiPlayer, humanPlayer) {
+    const winnerInfo = calculateWinner(board);
+    if (winnerInfo) {
+      return winnerInfo.winner === aiPlayer ? 1 : -1;
+    }
+    if (board.every(square => square !== null)) {
+      return 0; 
+    }
+  
+    if (isMaximizing) {
+      let bestScore = -Infinity;
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === null) {
+          board[i] = aiPlayer;
+          let score = minimax(board, depth + 1, false, aiPlayer, humanPlayer);
+          board[i] = null;
+          bestScore = Math.max(score, bestScore);
+        }
+      }
+      return bestScore;
+    } else {
+      let bestScore = Infinity;
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === null) {
+          board[i] = humanPlayer;
+          let score = minimax(board, depth + 1, true, aiPlayer, humanPlayer);
+          board[i] = null;
+          bestScore = Math.min(score, bestScore);
+        }
+      }
+      return bestScore;
+    }
+  }
 
   const handleClick = (i) => {
     if (calculateWinner(squares) || !playerTurn || computerIsMoving || announcement || squares[i]) {
