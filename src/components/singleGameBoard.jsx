@@ -1,149 +1,158 @@
 import '../styles/board.css';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
-const Square = ({ value, onSquareClick, disabled }) => {
+const Square = ({ value, onSquareClick,isDisabled }) => {
   return (
-    <button className="square" onClick={onSquareClick} disabled={disabled}>
+    <button className="square" onClick={onSquareClick} disabled={isDisabled}>
       {value}
     </button>
   );
 };
 
 export default function SingleGameBoard() {
-  const [playerX, setPlayerX] = useState(true); // Player getting X (1st turn)
-  const [announcement, setAnnouncement] = useState(null); // Announcing turns
-  const [squares, setSquares] = useState(Array(9).fill(null)); // Game board
-  const [xisNext, setXisNext] = useState(true); // X or O turn state
-  const computerMoving = useRef(false); // Track computer movement across renders
+  const [playerisX, setPlayerisX] = useState(null); //for player getting X(1st turn)
+  const [announcement,setAnnouncement] =useState(null); //for 3s announcing whose turn is it
+  const [squares, setSquares] = useState(Array(9).fill(null)); //array
+  const [xisNext, setXisNext ] = useState(true);//for x and o 
+  const [playerTurn,setPlayerTurn] = useState(false);
+  const [computerTurn,setComputerTurn] = useState(false);
+  const [computerIsMoving,setComputerIsMoving] = useState(false);
+  
 
-  // Handle game start (announcement & turn decision)
-  useEffect(() => {
-    const randomNum = Math.random();
-    announce(randomNum);
+  //starting to decide turns and announcement
+  useEffect(()=>{
+    return randomize();
+  },[]);
+  
+  const randomize = () => {
+    const isPlayerX = Math.random() < 0.5;
+    setPlayerisX(isPlayerX);
+    setAnnouncement(isPlayerX ? 'Your turn first.' : 'Computer\'s turn first.');
 
-    const timer = setTimeout(() => {
-      decideTurn(randomNum);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!playerX) {
-      computerMove(squares);
-    }
-  }, [playerX]);
-
-  // Decide turn
-  const decideTurn = (Num) => {
-    setPlayerX(Num < 0.5);
-  };
-
-  // Show announcement
-  const announce = (Num) => {
-    setAnnouncement(Num < 0.5 ? "Your turn first." : "Computer's turn first.");
-    setTimeout(() => {
+    const mytime = setTimeout(()=>{
+      if (isPlayerX) {
+        setPlayerTurn(true);
+        setComputerTurn(false);
+      } else {
+        setPlayerTurn(false);
+        setComputerTurn(true);
+      }
       setAnnouncement(null);
-    }, 3000);
-  };
+    },3000)
 
-  // Computer move logic
-  const computerMove = (board) => {
-    if (calculateWinner(board) || board.every((square) => square !== null)) return;
-    if (computerMoving.current) return; // Prevent multiple moves
+    return () => mytime;
+  }
 
-    computerMoving.current = true;
-    let availableMoves = board
+  
+  useEffect (()=>{
+    if (computerTurn) {
+      computerMove();
+    }
+  },[computerTurn]);
+
+  const computerMove = () => {
+    if (calculateWinner(squares) || computerIsMoving || squares.every((square) => square !== null)) return;
+
+    setComputerIsMoving(true);
+
+    let availableMoves = squares
       .map((val, idx) => (val === null ? idx : null))
       .filter((idx) => idx !== null);
 
     let randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-
-    setTimeout(() => {
-      board[randomMove] = xisNext ? 'X' : 'O';
-      setSquares([...board]);
+    setTimeout(()=>{
+      const nextSquares = squares.slice();
+      nextSquares[randomMove] = xisNext ? 'X' : 'O';
+      setSquares(nextSquares);
+      setComputerTurn(false);
       setXisNext(!xisNext);
-      setPlayerX(true);
-      computerMoving.current = false;
-    }, 500);
+      setPlayerTurn(true);
+      setComputerIsMoving(false);
+    },500);
   };
 
-  // Handle user move
   const handleClick = (i) => {
-    if (calculateWinner(squares) || !playerX || computerMoving.current || announcement || squares[i]) {
+    if (calculateWinner(squares) || !playerTurn || computerIsMoving || announcement || squares[i]) {
       return;
     }
-
     const nextSquares = squares.slice();
     nextSquares[i] = xisNext ? 'X' : 'O';
     setSquares(nextSquares);
+    setPlayerTurn(false);
     setXisNext(!xisNext);
-    setPlayerX(false);
-  };
-
-  // Determine game status
-  let winner = calculateWinner(squares);
-  let isDraw = squares.every((square) => square !== null) && !winner;
-  let status;
-  if (winner) {
-    status = `Winner: ${winner}`;
-  } else if (isDraw) {
-    status = "It's a draw!";
-  } else if (announcement) {
-    status = "Mystic Toe";
-  } else {
-    status = playerX ? "Your turn." : "Computer is moving...";
+    setComputerTurn(true);
   }
 
-  // Restart game
   const handleRestart = () => {
     setSquares(Array(9).fill(null));
     setXisNext(true);
-    setPlayerX(true);
-    computerMoving.current = false;
+    setComputerTurn(false)
+    setPlayerTurn(false);
+    randomize();
+  }
 
-    const randomNum = Math.random();
-    announce(randomNum);
+  let winner = calculateWinner(squares);
+  let isdraw = squares.every(square => square !== null ) && !winner;
+  let status;
+  if (winner) {
+    if (playerisX && winner==='X') {
+      status = 'You win.';
+    } else if (!playerisX && winner==='O') {
+      status = 'You win.';
+    } else {
+      status = 'Computer wins.';
+    }
+  } else if (isdraw) {
+    status = 'Draw';
+  } else if (announcement) {
+    status = 'Mystic Toe'
+  } else {
+    if (playerTurn) {
+      status = 'Your turn.'
+    } else if (computerTurn) {
+      status = 'Computer\'s turn.'
+    }
+  }
 
-    const timer = setTimeout(() => {
-      decideTurn(randomNum);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  };
-
-  return (
-    <div className="board-container">
-      {announcement && <p className="announcement">{announcement}</p>}
-      <h1>{status}</h1>
-      <div className="board">
-        <div className="board-row">
-          <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-          <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-          <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
-        </div>
-        <div className="board-row">
-          <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-          <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-          <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
-        </div>
-        <div className="board-row">
-          <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-          <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-          <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
-        </div>
+  return(
+    <>
+    
+    <div className='board-container'>
+    { announcement && <p className="announcement">{announcement}</p>}
+    <h1>{status}</h1>
+    <div className='board'>
+      <div className="board-row">
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} isDisabled={!playerTurn || computerIsMoving}/>
       </div>
-      <button onClick={handleRestart} className="restart-button">Restart</button>
+      <div className="board-row">
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} isDisabled={!playerTurn || computerIsMoving}/>
+      </div>
+      <div className="board-row">
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} isDisabled={!playerTurn || computerIsMoving}/>
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} isDisabled={!playerTurn || computerIsMoving}/>
+      </div>
     </div>
+    <button onClick={handleRestart}>Restart</button>
+    </div>
+    </>
   );
 }
 
-// Function to calculate winner
 function calculateWinner(squares) {
   const lines = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6]
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
   ];
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
