@@ -1,13 +1,14 @@
 import '../styles/board.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, React } from 'react';
 
-const Square = ({ value, onSquareClick,isDisabled,isWinning }) => {
+const Square = ({ value, onSquareClick, isDisabled, isWinning }) => {
   return (
     <button className={`square ${isWinning ? 'winning-square' : ''}`}  onClick={onSquareClick} disabled={isDisabled}>
       {value}
     </button>
   );
 };
+
 
 export default function SingleGameBoard() {
   const [playerisX, setPlayerisX] = useState(null); //for player getting X(1st turn)
@@ -19,7 +20,6 @@ export default function SingleGameBoard() {
   const [computerIsMoving,setComputerIsMoving] = useState(false);
   const [winningLine, setWinningLine] = useState([]);
   
-
   //starting to decide turns and announcement
   useEffect(()=>{
     return randomize();
@@ -46,9 +46,11 @@ export default function SingleGameBoard() {
 
   
   useEffect (()=>{
+    let timeoutId;
     if (computerTurn) {
-      computerMove();
+      timeoutId = computerMove();
     }
+    return ()=> clearTimeout(timeoutId);
   },[computerTurn]);
 
   const computerMove = () => {
@@ -61,7 +63,7 @@ export default function SingleGameBoard() {
       .filter((idx) => idx !== null);
 
     let randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-    setTimeout(()=>{
+    return setTimeout(()=>{
       setSquares(prev => {
         const next = [...prev];
         next[randomMove] = xisNext ? 'X' : 'O';
@@ -107,7 +109,7 @@ export default function SingleGameBoard() {
   }, [winnerInfo]);
 
   let isdraw = squares.every(square => square !== null ) && !winner;
-  // Replace your current status logic with:
+  
   let status;
   if (winner) {
     if ((playerisX && winner === 'X') || (!playerisX && winner === 'O')) {
@@ -123,6 +125,25 @@ export default function SingleGameBoard() {
     status = playerTurn ? 'Your turn' : "Computer's turn";
   }
 
+  const renderBoard = () => {
+    return [0, 1, 2].map(row => (
+      <div className="board-row" key={row}>
+        {[0, 1, 2].map(col => {
+          const index = row * 3 + col;
+          return (
+            <Square
+              key={index}
+              value={squares[index]}
+              onSquareClick={() => handleClick(index)}
+              isDisabled={!playerTurn || computerIsMoving}
+              isWinning={winningLine.includes(index)}
+            />
+          );
+        })}
+      </div>
+    ));
+  };
+
   return(
     <>
     
@@ -130,21 +151,7 @@ export default function SingleGameBoard() {
     { announcement && <p className="announcement">{announcement}</p>}
     <h1>{status}</h1>
     <div className='board'>
-      <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(0)}/>
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(1)}/>
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(2)}/>
-      </div>
-      <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(3)}/>
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(4)}/>
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(5)}/>
-      </div>
-      <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(6)}/>
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(7)}/>
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} isDisabled={!playerTurn || computerIsMoving} isWinning={winningLine.includes(8)}/>
-      </div>
+      {renderBoard()}
     </div>
     { !announcement && <button onClick={handleRestart}>Restart</button>}
     </div>
