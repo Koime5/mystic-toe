@@ -11,8 +11,8 @@ const Home = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState("Mystic Toe");
   const [buttons, setButtons] = useState([
-    { name: "Play Online", action: "online" },
-    { name: "Play with Friends", action: "friends" },
+    { name: "Single Player", action: "online" },
+    { name: "Multi Player", action: "friends" },
   ]);
 
   const [prevState, setPrevState] = useState(null);
@@ -20,14 +20,14 @@ const Home = () => {
   const handleRoute = (path) => {
     const routes = {
       online: {
-        title: "Play Online",
+        title: "Single Player",
         buttons: [
           { name: "Play with Computer", action: "vs-computer" },
           { name: "Random Opponent", action: "random-opponent" },
         ],
       },
       friends: {
-        title: "Play with Friends",
+        title: "Multi Player",
         buttons: [
           { name: "Create Room", action: "create-room" },
           { name: "Join Room", action: "join-room" },
